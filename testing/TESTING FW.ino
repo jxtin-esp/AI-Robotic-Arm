@@ -35,7 +35,7 @@ const unsigned long HOLD_TIMEOUT_MS = 300;
 
 int8_t dirn[NC];
 unsigned long lastCmd[NC];
-int speedPct = 30;
+int speedPct = 50;      // 200 us either side of stop, the range the direct test used
 
 // ---------- positional joints
 const uint8_t NP = 3;
@@ -92,6 +92,9 @@ void handleLine(char *line) {
   int a = 0, b = 0, c = 0;
   int n = (strlen(line) > 2) ? sscanf(line + 2, "%d,%d,%d", &a, &b, &c) : 0;
 
+  Serial.print("RX ");           // echo every command so the GUI shows what arrived
+  Serial.println(line);
+
   switch (line[0]) {
     case 'M': {
       if (n < 2 || a < 0 || a >= NC) break;
@@ -124,7 +127,10 @@ void handleLine(char *line) {
       }
       break;
     case 'A':
-      if (n >= 2 && a >= 0 && a < NP) pTgt[a] = constrain(b, 0, 180);
+      if (n >= 2 && a >= 0 && a < NP) {
+        pTgt[a] = constrain(b, 0, 180);
+        if (!pEnabled) Serial.println("WARN positional off: send E,1 first");
+      }
       break;
   }
 }
