@@ -50,7 +50,7 @@ class App(tk.Tk):
 
         self.ser = None
         self.held = {}                          # continuous joint -> direction
-        self.speed = tk.IntVar(value=30)
+        self.speed = tk.IntVar(value=50)
         self.speed_dirty = False
         self.pos_on = tk.BooleanVar(value=False)
         self.angle = [tk.IntVar(value=90) for _ in POS]
