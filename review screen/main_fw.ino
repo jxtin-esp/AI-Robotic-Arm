@@ -291,6 +291,7 @@ void drawCheckBadge(int cx, int cy, int r) {
   drawThickLine(x2, y2, x3, y3, 5, colOnAccent);
 }
 
+
 void drawButton(
   int x, int y, int w, int h,
   const char* label,
@@ -298,14 +299,15 @@ void drawButton(
   uint16_t borderColor,
   uint16_t textColor
 ) {
+  // Draw a clean pill without a separate rectangular outline
   tft.fillRoundRect(x, y, w, h, h / 2, fillColor);
-  tft.drawRoundRect(x, y, w, h, h / 2, borderColor);
 
   tft.setFreeFont(&FreeSansBold12pt7b);
   tft.setTextColor(textColor, fillColor);
   tft.setTextDatum(MC_DATUM);
   tft.drawString(label, x + w / 2, y + h / 2 + 1, GFXFF);
 }
+
 
 bool inRect(int tx, int ty, int x, int y, int w, int h) {
   return tx >= x && tx <= x + w &&
@@ -321,77 +323,41 @@ void drawTitle() {
 
 // ---------------- HOME SCREEN ----------------
 
+
 void drawHome() {
   tft.fillScreen(colBg);
   drawTitle();
 
-  // Presenter names
-  tft.fillRoundRect(12, 43, 296, 24, 8, colCard);
-  tft.drawRoundRect(12, 43, 296, 24, 8, colTrack);
+  // Presenter card
+  tft.fillRoundRect(12, 48, 296, 112, 14, colCard);
+  tft.drawRoundRect(12, 48, 296, 112, 14, colAccentDeep);
 
-  char presenterLine[100] = "PRESENTED BY  ";
-
-  for (int i = 0; i < PRESENTER_COUNT; i++) {
-    if (i > 0) {
-      strncat(
-        presenterLine, ", ",
-        sizeof(presenterLine) - strlen(presenterLine) - 1
-      );
-    }
-
-    strncat(
-      presenterLine, PRESENTER_NAMES[i],
-      sizeof(presenterLine) - strlen(presenterLine) - 1
-    );
-  }
-
+  // Heading
   tft.setFreeFont(&FreeSans9pt7b);
-  tft.setTextColor(colTextDim, colCard);
+  tft.setTextColor(colAccent, colCard);
   tft.setTextDatum(MC_DATUM);
-  tft.drawString(presenterLine, 160, 55, GFXFF);
+  tft.drawString("PRESENTED BY", 160, 68, GFXFF);
 
-  // Average rating card
-  tft.fillRoundRect(12, 78, 296, 104, 12, colCard);
-  tft.drawRoundRect(12, 78, 296, 104, 12, colTrack);
-
-  char avgStr[8];
-  snprintf(avgStr, sizeof(avgStr), "%.1f", averageRating());
-
-  tft.setFreeFont(&FreeSansBold24pt7b);
+  // Vertical presenter list
+  tft.setFreeFont(&FreeSansBold12pt7b);
   tft.setTextColor(colText, colCard);
   tft.setTextDatum(MC_DATUM);
-  tft.drawString(avgStr, 77, 119, GFXFF);
 
-  float roundedAvg = roundf(averageRating() * 2.0f) / 2.0f;
-  int fullStars = (int)roundedAvg;
-  bool hasHalf = (roundedAvg - fullStars) > 0.01f;
+  int nameY = 94;
+  int spacing = 22;
 
-  for (int i = 0; i < 5; i++) {
-    float amount = (i < fullStars) ? 1.0f :
-      ((i == fullStars && hasHalf) ? 0.5f : 0.0f);
-
-    drawSummaryStar(145 + i * 27, 112, 11, 5, amount);
+  for (int i = 0; i < PRESENTER_COUNT; i++) {
+    tft.drawString(PRESENTER_NAMES[i], 160, nameY + (i * spacing), GFXFF);
   }
 
-  char countLine[32];
-  snprintf(
-    countLine, sizeof(countLine), "%lu %s",
-    (unsigned long)totalRatings(), TXT_RATINGS_LABEL
-  );
-
-  tft.setFreeFont(&FreeSans9pt7b);
-  tft.setTextColor(colTextDim, colCard);
-  tft.setTextDatum(MC_DATUM);
-  tft.drawString(countLine, 216, 151, GFXFF);
-
-  tft.fillRoundRect(28, 169, 264, 3, 1, colAccentDeep);
-
+  // Rate button
   drawButton(
     BTN_X, HOME_BTN_Y, BTN_W, HOME_BTN_H,
     TXT_BTN_RATE_NOW,
     colAccent, colAccentDeep, colOnAccent
   );
 }
+
 
 void handleHomeTouch(int tx, int ty) {
   if (inRect(tx, ty, BTN_X, HOME_BTN_Y, BTN_W, HOME_BTN_H)) {
